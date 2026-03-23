@@ -1,4 +1,5 @@
 const STYLE_ID = 'ag-styler-import';  // just holds the @import for Manrope
+const RADIUS_STYLE_ID = 'ag-styler-radius';
 const AG_FONT_ATTR = 'data-ag-font';
 const AG_COLOR_ATTR = 'data-ag-cs';
 
@@ -121,6 +122,23 @@ function applyColorSwaps(swaps) {
   colorObserver.observe(document.documentElement, { childList: true, subtree: true });
 }
 
+// ── Button radius ─────────────────────────────────────────────────────────────
+
+function applyButtonRadius(px) {
+  let el = document.getElementById(RADIUS_STYLE_ID);
+  if (!px && px !== 0) {
+    if (el) el.remove();
+    return;
+  }
+  const val = parseInt(px, 10) + 'px';
+  if (!el) {
+    el = document.createElement('style');
+    el.id = RADIUS_STYLE_ID;
+    (document.head || document.documentElement).appendChild(el);
+  }
+  el.textContent = `button, [role="button"], a[class*="btn"], input[type="button"], input[type="submit"], input[type="reset"] { border-radius: ${val} !important; }`;
+}
+
 // ── Entry point ──────────────────────────────────────────────────────────────
 
 function ensureManropeImport() {
@@ -135,6 +153,7 @@ function applyStyles(settings) {
   if (!settings.enabled) {
     clearFontOverrides();
     clearColorOverrides();
+    applyButtonRadius(null);
     return;
   }
 
@@ -144,6 +163,7 @@ function applyStyles(settings) {
     if (settings.fontEnabled) applyFontSwap();
     else clearFontOverrides();
     applyColorSwaps(settings.colorSwaps);
+    applyButtonRadius(settings.buttonRadius);
   };
 
   if (document.readyState === 'loading') {

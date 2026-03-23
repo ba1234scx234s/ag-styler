@@ -1,7 +1,8 @@
 const DEFAULT_SETTINGS = {
   enabled: true,
   fontEnabled: true,
-  colorSwaps: []
+  colorSwaps: [],
+  buttonRadius: ''
 };
 
 let settings = { ...DEFAULT_SETTINGS };
@@ -9,6 +10,7 @@ let settings = { ...DEFAULT_SETTINGS };
 // DOM refs
 const toggleEnabled = document.getElementById('toggleEnabled');
 const toggleFont = document.getElementById('toggleFont');
+const inputRadius = document.getElementById('inputRadius');
 const colorList = document.getElementById('colorList');
 const btnAddColor = document.getElementById('btnAddColor');
 const btnSave = document.getElementById('btnSave');
@@ -25,6 +27,7 @@ chrome.storage.sync.get(['agStylerSettings'], (result) => {
 function renderUI() {
   toggleEnabled.checked = settings.enabled;
   toggleFont.checked = settings.fontEnabled;
+  inputRadius.value = settings.buttonRadius || '';
   statusBadge.textContent = settings.enabled ? 'ON' : 'OFF';
   statusBadge.style.background = settings.enabled ? '#1d6ef5' : '#444';
   renderColorList();
@@ -78,6 +81,10 @@ toggleEnabled.addEventListener('change', () => {
 
 toggleFont.addEventListener('change', () => {
   settings.fontEnabled = toggleFont.checked;
+});
+
+inputRadius.addEventListener('input', () => {
+  settings.buttonRadius = inputRadius.value.trim();
 });
 
 btnAddColor.addEventListener('click', () => {
