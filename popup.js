@@ -46,9 +46,15 @@ function colorByHex(hex) {
 }
 
 // ── Settings ──────────────────────────────────────────────────────────────────
+const FONTS = [
+  { value: 'open-sans', label: 'Open Sans (default)' },
+  { value: 'manrope',   label: 'Manrope' },
+  { value: 'atkinson',  label: 'Atkinson Hyperlegible' },
+];
+
 const DEFAULT_SETTINGS = {
   enabled: true,
-  fontEnabled: true,
+  selectedFont: 'open-sans',
   colorSwaps: [],
   buttonRadius: ''
 };
@@ -57,7 +63,7 @@ let settings = { ...DEFAULT_SETTINGS };
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const toggleEnabled = document.getElementById('toggleEnabled');
-const toggleFont    = document.getElementById('toggleFont');
+const selectFont    = document.getElementById('selectFont');
 const inputRadius   = document.getElementById('inputRadius');
 const colorList     = document.getElementById('colorList');
 const btnAddColor   = document.getElementById('btnAddColor');
@@ -122,14 +128,28 @@ function openDropdown(btn, index, field) {
 }
 
 // ── UI rendering ──────────────────────────────────────────────────────────────
+
+// Populate font options once
+FONTS.forEach(f => {
+  const opt = document.createElement('option');
+  opt.value = f.value;
+  opt.textContent = f.label;
+  selectFont.appendChild(opt);
+});
+
 chrome.storage.sync.get(['agStylerSettings'], (result) => {
-  settings = result.agStylerSettings || { ...DEFAULT_SETTINGS };
+  const saved = result.agStylerSettings || {};
+  // Migrate old fontEnabled boolean → selectedFont
+  if (!saved.selectedFont) {
+    saved.selectedFont = saved.fontEnabled === false ? 'open-sans' : 'manrope';
+  }
+  settings = { ...DEFAULT_SETTINGS, ...saved };
   renderUI();
 });
 
 function renderUI() {
   toggleEnabled.checked = settings.enabled;
-  toggleFont.checked    = settings.fontEnabled;
+  selectFont.value      = settings.selectedFont || 'open-sans';
   inputRadius.value     = settings.buttonRadius || '';
   statusBadge.textContent  = settings.enabled ? 'ON' : 'OFF';
   statusBadge.style.background = settings.enabled ? '#1d6ef5' : '#444';
@@ -201,8 +221,8 @@ toggleEnabled.addEventListener('change', () => {
   statusBadge.style.background = settings.enabled ? '#1d6ef5' : '#444';
 });
 
-toggleFont.addEventListener('change', () => {
-  settings.fontEnabled = toggleFont.checked;
+selectFont.addEventListener('change', () => {
+  settings.selectedFont = selectFont.value;
 });
 
 inputRadius.addEventListener('input', () => {

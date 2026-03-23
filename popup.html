@@ -94,6 +94,19 @@
     .toggle input:checked + .toggle-track { background: #1d6ef5; }
     .toggle input:checked + .toggle-track::after { transform: translateX(16px); background: #fff; }
 
+    /* Font select */
+    select {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      color: #e8e8e8;
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    select:focus { outline: none; border-color: #1d6ef5; }
+
     /* Colour swap rows */
     .color-row {
       display: grid;
@@ -285,11 +298,8 @@
   <div class="section">
     <div class="section-label">Font</div>
     <div class="row">
-      <label for="toggleFont">Swap Open Sans → Manrope</label>
-      <label class="toggle">
-        <input type="checkbox" id="toggleFont" checked />
-        <span class="toggle-track"></span>
-      </label>
+      <label for="selectFont">Active font</label>
+      <select id="selectFont"></select>
     </div>
   </div>
 

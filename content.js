@@ -42,16 +42,19 @@ function clearFontOverrides() {
   });
 }
 
+let currentFontFamily = 'Manrope, sans-serif';
+
 function processFontElement(el) {
   if (!el || el.nodeType !== 1) return;
   const font = window.getComputedStyle(el).getPropertyValue('font-family');
   if (font && font.toLowerCase().includes('open sans')) {
-    el.style.setProperty('font-family', 'Manrope, sans-serif', 'important');
+    el.style.setProperty('font-family', currentFontFamily, 'important');
     el.setAttribute(AG_FONT_ATTR, '1');
   }
 }
 
-function applyFontSwap() {
+function applyFontSwap(selectedFont) {
+  currentFontFamily = (FONT_CONFIG[selectedFont] || FONT_CONFIG['manrope']).family;
   clearFontOverrides();
   document.querySelectorAll('*').forEach(processFontElement);
 
@@ -141,12 +144,27 @@ function applyButtonRadius(px) {
 
 // ── Entry point ──────────────────────────────────────────────────────────────
 
-function ensureManropeImport() {
-  if (document.getElementById(STYLE_ID)) return;
-  const el = document.createElement('style');
-  el.id = STYLE_ID;
-  el.textContent = `@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');`;
-  (document.head || document.documentElement).appendChild(el);
+const FONT_CONFIG = {
+  'manrope':  {
+    import: `@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');`,
+    family: 'Manrope, sans-serif'
+  },
+  'atkinson': {
+    import: `@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap');`,
+    family: '"Atkinson Hyperlegible", sans-serif'
+  }
+};
+
+function ensureFontImport(selectedFont) {
+  const config = FONT_CONFIG[selectedFont];
+  let el = document.getElementById(STYLE_ID);
+  if (!config) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('style');
+    el.id = STYLE_ID;
+    (document.head || document.documentElement).appendChild(el);
+  }
+  el.textContent = config.import;
 }
 
 function applyStyles(settings) {
@@ -157,10 +175,10 @@ function applyStyles(settings) {
     return;
   }
 
-  ensureManropeImport();
+  ensureFontImport(settings.selectedFont);
 
   const run = () => {
-    if (settings.fontEnabled) applyFontSwap();
+    if (settings.selectedFont && settings.selectedFont !== 'open-sans') applyFontSwap(settings.selectedFont);
     else clearFontOverrides();
     applyColorSwaps(settings.colorSwaps);
     applyButtonRadius(settings.buttonRadius);
@@ -174,7 +192,11 @@ function applyStyles(settings) {
 }
 
 chrome.storage.sync.get(['agStylerSettings'], (result) => {
-  const settings = result.agStylerSettings || { enabled: true, fontEnabled: true, colorSwaps: [] };
+  const saved = result.agStylerSettings || {};
+  if (!saved.selectedFont) {
+    saved.selectedFont = saved.fontEnabled === false ? 'open-sans' : 'manrope';
+  }
+  const settings = { enabled: true, selectedFont: 'open-sans', colorSwaps: [], ...saved };
   applyStyles(settings);
 });
 
