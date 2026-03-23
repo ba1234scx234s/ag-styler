@@ -33,16 +33,18 @@ function buildFontCSS() {
   return `
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
 
-*:not([class*="material-symbols"]):not([class*="material-icons"]):not([class*="font-awesome"]):not([class*="fa "]):not([class*="fa-"]) {
+*:not([class*="material-symbols"]):not([class*="material-icons"]):not([class*="font-awesome"]):not([class*="fa "]):not([class*="fa-"]):not([class^="icon-"]):not([class*=" icon-"]) {
   font-family: Manrope, sans-serif !important;
 }
 [style*="Open Sans"], [class*="open-sans"], [class*="opensans"] {
   font-family: Manrope, sans-serif !important;
 }
+/* Restore icon fonts — revert lets the page's own stylesheet value win */
 [class*="material-symbols"],
-[class*="material-icons"] {
-  font-family: 'Material Symbols Rounded', 'Material Symbols Outlined',
-               'Material Icons', 'Material Icons Round', 'Material Icons Outlined' !important;
+[class*="material-icons"],
+[class^="icon-"],
+[class*=" icon-"] {
+  font-family: revert !important;
 }
 `;
 }
