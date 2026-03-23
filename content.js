@@ -1,9 +1,33 @@
 const STYLE_ID = 'ag-styler-overrides';
-const COLOR_OVERRIDE_ID = 'ag-styler-color-overrides';
+const AG_ATTR = 'data-ag-cs'; // marks elements we've colour-modified
 
 function normalizeHex(hex) {
   return hex.trim().replace(/^#/, '').toLowerCase();
 }
+
+function hexToRgbParts(hex) {
+  const h = normalizeHex(hex);
+  if (h.length === 3) {
+    return [parseInt(h[0]+h[0],16), parseInt(h[1]+h[1],16), parseInt(h[2]+h[2],16)];
+  }
+  if (h.length === 6) {
+    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+  }
+  return null;
+}
+
+function rgbMatches(val, [r, g, b]) {
+  const m = val.match(/rgba?\(\s*(\d+),\s*(\d+),\s*(\d+)/);
+  return m && +m[1] === r && +m[2] === g && +m[3] === b;
+}
+
+// All colour-bearing CSS properties to check
+const COLOR_PROPS = [
+  'color', 'background-color',
+  'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
+  'outline-color', 'text-decoration-color', 'caret-color', 'column-rule-color',
+  'fill', 'stroke'
+];
 
 function buildFontCSS() {
   return `
@@ -25,138 +49,64 @@ function buildFontCSS() {
 
 let colorObserver = null;
 
-// Extract override rules from browser CSSOM (same-origin sheets)
-function extractFromCSSOM(rules, swaps, mediaPrefix) {
-  const overrides = [];
-  for (const rule of rules) {
-    if (rule instanceof CSSStyleRule) {
-      for (const swap of swaps) {
-        const decls = [];
-        for (let i = 0; i < rule.style.length; i++) {
-          const prop = rule.style[i];
-          const val = rule.style.getPropertyValue(prop);
-          if (val.toLowerCase().includes(swap.patternStr)) {
-            decls.push(`${prop}: ${val.replace(swap.pattern, swap.to)} !important`);
-          }
-        }
-        if (decls.length) {
-          const inner = `${rule.selectorText} { ${decls.join('; ')} }`;
-          overrides.push(mediaPrefix ? `${mediaPrefix} { ${inner} }` : inner);
-        }
-      }
-    } else if (rule instanceof CSSMediaRule) {
-      overrides.push(...extractFromCSSOM(
-        rule.cssRules, swaps, `@media ${rule.media.mediaText}`
-      ));
-    }
-  }
-  return overrides;
-}
-
-// Extract override rules from raw CSS text (cross-origin fetched sheets)
-function extractFromText(cssText, swaps) {
-  const overrides = [];
-  for (const swap of swaps) {
-    if (!cssText.toLowerCase().includes(swap.patternStr)) continue;
-    const ruleRe = /([^@{}\n][^{}]*)\{([^{}]+)\}/g;
-    let m;
-    while ((m = ruleRe.exec(cssText)) !== null) {
-      const declarations = m[2];
-      if (!declarations.toLowerCase().includes(swap.patternStr)) continue;
-      const selector = m[1].trim();
-      const newDecls = declarations
-        .split(';')
-        .filter(d => d.trim())
-        .map(d => d.toLowerCase().includes(swap.patternStr)
-          ? d.replace(swap.pattern, swap.to).trimEnd() + ' !important'
-          : d)
-        .join('; ');
-      overrides.push(`${selector} { ${newDecls} }`);
-    }
-  }
-  return overrides;
-}
-
-async function applyColorSwaps(swaps) {
+function clearColorOverrides() {
   if (colorObserver) { colorObserver.disconnect(); colorObserver = null; }
-  const oldEl = document.getElementById(COLOR_OVERRIDE_ID);
-  if (oldEl) oldEl.remove();
+  document.querySelectorAll(`[${AG_ATTR}]`).forEach(el => {
+    COLOR_PROPS.forEach(prop => el.style.removeProperty(prop));
+    el.removeAttribute(AG_ATTR);
+  });
+}
 
-  if (!swaps || swaps.length === 0) return;
+function processElement(el, validSwaps) {
+  if (!el || el.nodeType !== 1 || el.id === STYLE_ID) return;
+  const computed = window.getComputedStyle(el);
+  let hit = false;
+  for (const swap of validSwaps) {
+    for (const prop of COLOR_PROPS) {
+      const val = computed.getPropertyValue(prop);
+      if (val && rgbMatches(val, swap.rgb)) {
+        el.style.setProperty(prop, '#' + normalizeHex(swap.to), 'important');
+        hit = true;
+      }
+    }
+  }
+  if (hit) el.setAttribute(AG_ATTR, '1');
+}
+
+function applyColorSwaps(swaps) {
+  clearColorOverrides();
+  if (!swaps || !swaps.length) return;
 
   const validSwaps = swaps
     .filter(s => s.from && s.to)
-    .map(s => ({
-      pattern: new RegExp('#' + normalizeHex(s.from), 'gi'),
-      patternStr: '#' + normalizeHex(s.from),
-      to: '#' + normalizeHex(s.to)
-    }));
+    .map(s => ({ rgb: hexToRgbParts(s.from), to: s.to }))
+    .filter(s => s.rgb);
 
-  if (validSwaps.length === 0) return;
+  if (!validSwaps.length) return;
 
-  // Replace inline style attributes
-  function processInlineStyle(el) {
-    const style = el.getAttribute('style');
-    if (!style) return;
-    let next = style;
-    for (const swap of validSwaps) next = next.replace(swap.pattern, swap.to);
-    if (next !== style) el.setAttribute('style', next);
-  }
-  document.querySelectorAll('[style]').forEach(processInlineStyle);
+  // Scan every rendered element
+  document.querySelectorAll('*').forEach(el => processElement(el, validSwaps));
 
-  // Build overrides from all stylesheets
-  const overrideRules = [];
-  await Promise.all(Array.from(document.styleSheets).map(async sheet => {
-    if (sheet.ownerNode && [STYLE_ID, COLOR_OVERRIDE_ID].includes(sheet.ownerNode.id)) return;
-    try {
-      overrideRules.push(...extractFromCSSOM(sheet.cssRules, validSwaps, null));
-    } catch {
-      if (sheet.href) {
-        try {
-          const resp = await fetch(sheet.href);
-          const text = await resp.text();
-          overrideRules.push(...extractFromText(text, validSwaps));
-        } catch { /* skip inaccessible */ }
-      }
-    }
-  }));
-
-  if (overrideRules.length) {
-    const overrideEl = document.createElement('style');
-    overrideEl.id = COLOR_OVERRIDE_ID;
-    (document.head || document.documentElement).appendChild(overrideEl);
-    overrideEl.textContent = overrideRules.join('\n');
-  }
-
-  // Watch for dynamically added inline styles
+  // Catch dynamically added elements
   colorObserver = new MutationObserver(mutations => {
     for (const m of mutations) {
-      if (m.type === 'childList') {
-        m.addedNodes.forEach(node => {
-          if (node.nodeType !== 1) return;
-          if (node.hasAttribute('style')) processInlineStyle(node);
-          node.querySelectorAll('[style]').forEach(processInlineStyle);
-        });
-      } else if (m.type === 'attributes') {
-        processInlineStyle(m.target);
-      }
+      if (m.type !== 'childList') continue;
+      m.addedNodes.forEach(node => {
+        if (node.nodeType !== 1) return;
+        processElement(node, validSwaps);
+        node.querySelectorAll('*').forEach(el => processElement(el, validSwaps));
+      });
     }
   });
-
-  colorObserver.observe(document.documentElement, {
-    childList: true, subtree: true,
-    attributes: true, attributeFilter: ['style']
-  });
+  colorObserver.observe(document.documentElement, { childList: true, subtree: true });
 }
 
-async function applyStyles(settings) {
+function applyStyles(settings) {
   let el = document.getElementById(STYLE_ID);
-  const colorEl = document.getElementById(COLOR_OVERRIDE_ID);
 
   if (!settings.enabled) {
     if (el) el.remove();
-    if (colorEl) colorEl.remove();
-    if (colorObserver) { colorObserver.disconnect(); colorObserver = null; }
+    clearColorOverrides();
     return;
   }
 
@@ -167,7 +117,12 @@ async function applyStyles(settings) {
   }
   el.textContent = settings.fontEnabled ? buildFontCSS() : '';
 
-  await applyColorSwaps(settings.colorSwaps);
+  // Wait for DOM to be painted before scanning computed styles
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => applyColorSwaps(settings.colorSwaps), { once: true });
+  } else {
+    applyColorSwaps(settings.colorSwaps);
+  }
 }
 
 chrome.storage.sync.get(['agStylerSettings'], (result) => {
