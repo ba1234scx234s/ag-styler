@@ -97,39 +97,86 @@
     /* Colour swap rows */
     .color-row {
       display: grid;
-      grid-template-columns: auto 1fr auto auto 1fr auto;
-      gap: 4px;
+      grid-template-columns: 1fr auto 1fr auto;
+      gap: 6px;
       align-items: center;
       margin-bottom: 8px;
     }
-
     .color-row:last-child { margin-bottom: 0; }
 
-    .hash {
-      font-family: monospace;
-      font-size: 12px;
-      color: #555;
-      padding: 0 2px;
-    }
+    .arrow { color: #555; font-size: 11px; }
 
-    .color-row input[type="text"] {
+    /* Colour select button */
+    .color-select { position: relative; min-width: 0; }
+    .color-select-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      width: 100%;
       background: #1a1a1a;
       border: 1px solid #2d2d2d;
       color: #e8e8e8;
       border-radius: 5px;
-      padding: 5px 8px;
+      padding: 5px 7px;
       font-size: 12px;
-      font-family: monospace;
-      width: 100%;
-      min-width: 0;
+      cursor: pointer;
+      text-align: left;
+      overflow: hidden;
     }
-
-    .color-row input[type="text"]:focus {
-      outline: none;
-      border-color: #1d6ef5;
+    .color-select-btn:focus { outline: none; border-color: #1d6ef5; }
+    .color-select-btn .swatch {
+      width: 13px; height: 13px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.12);
     }
+    .color-select-btn .cs-name {
+      flex: 1; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+      color: #ccc;
+    }
+    .color-select-btn .cs-chevron { color: #444; font-size: 10px; flex-shrink: 0; }
 
-    .arrow { color: #555; font-size: 11px; }
+    /* Floating dropdown */
+    #colorDropdown {
+      position: fixed;
+      background: #181818;
+      border: 1px solid #333;
+      border-radius: 6px;
+      list-style: none;
+      padding: 4px 0;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 9999;
+      display: none;
+    }
+    #colorDropdown.open { display: block; }
+    #colorDropdown .dd-group {
+      padding: 6px 10px 2px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #444;
+      pointer-events: none;
+    }
+    #colorDropdown .dd-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    #colorDropdown .dd-item:hover { background: #242424; }
+    #colorDropdown .dd-item.selected { background: #1d2d44; }
+    #colorDropdown .dd-item .swatch {
+      width: 16px; height: 16px;
+      border-radius: 3px;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    #colorDropdown .dd-item .dd-name { flex: 1; color: #ccc; }
+    #colorDropdown .dd-item .dd-hex { font-family: monospace; font-size: 11px; color: #555; }
 
     /* Radius input */
     .radius-input-wrap {
@@ -269,6 +316,7 @@
   </footer>
   <div class="status" id="statusMsg"></div>
 
+  <ul id="colorDropdown"></ul>
   <script src="popup.js"></script>
 </body>
 </html>
