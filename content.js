@@ -1,5 +1,6 @@
-const STYLE_ID = 'ag-styler-overrides';
-const AG_ATTR = 'data-ag-cs'; // marks elements we've colour-modified
+const STYLE_ID = 'ag-styler-import';  // just holds the @import for Manrope
+const AG_FONT_ATTR = 'data-ag-font';
+const AG_COLOR_ATTR = 'data-ag-cs';
 
 function normalizeHex(hex) {
   return hex.trim().replace(/^#/, '').toLowerCase();
@@ -21,7 +22,6 @@ function rgbMatches(val, [r, g, b]) {
   return m && +m[1] === r && +m[2] === g && +m[3] === b;
 }
 
-// All colour-bearing CSS properties to check
 const COLOR_PROPS = [
   'color', 'background-color',
   'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
@@ -29,37 +29,57 @@ const COLOR_PROPS = [
   'fill', 'stroke'
 ];
 
-function buildFontCSS() {
-  return `
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+// ── Font swap ────────────────────────────────────────────────────────────────
 
-*:not([class*="material-symbols"]):not([class*="material-icons"]):not([class*="font-awesome"]):not([class*="fa "]):not([class*="fa-"]):not([class^="icon-"]):not([class*=" icon-"]) {
-  font-family: Manrope, sans-serif !important;
+let fontObserver = null;
+
+function clearFontOverrides() {
+  if (fontObserver) { fontObserver.disconnect(); fontObserver = null; }
+  document.querySelectorAll(`[${AG_FONT_ATTR}]`).forEach(el => {
+    el.style.removeProperty('font-family');
+    el.removeAttribute(AG_FONT_ATTR);
+  });
 }
-[style*="Open Sans"], [class*="open-sans"], [class*="opensans"] {
-  font-family: Manrope, sans-serif !important;
+
+function processFontElement(el) {
+  if (!el || el.nodeType !== 1) return;
+  const font = window.getComputedStyle(el).getPropertyValue('font-family');
+  if (font && font.toLowerCase().includes('open sans')) {
+    el.style.setProperty('font-family', 'Manrope, sans-serif', 'important');
+    el.setAttribute(AG_FONT_ATTR, '1');
+  }
 }
-/* Restore icon fonts — revert lets the page's own stylesheet value win */
-[class*="material-symbols"],
-[class*="material-icons"],
-[class^="icon-"],
-[class*=" icon-"] {
-  font-family: revert !important;
+
+function applyFontSwap() {
+  clearFontOverrides();
+  document.querySelectorAll('*').forEach(processFontElement);
+
+  fontObserver = new MutationObserver(mutations => {
+    for (const m of mutations) {
+      if (m.type !== 'childList') continue;
+      m.addedNodes.forEach(node => {
+        if (node.nodeType !== 1) return;
+        processFontElement(node);
+        node.querySelectorAll('*').forEach(processFontElement);
+      });
+    }
+  });
+  fontObserver.observe(document.documentElement, { childList: true, subtree: true });
 }
-`;
-}
+
+// ── Colour swap ──────────────────────────────────────────────────────────────
 
 let colorObserver = null;
 
 function clearColorOverrides() {
   if (colorObserver) { colorObserver.disconnect(); colorObserver = null; }
-  document.querySelectorAll(`[${AG_ATTR}]`).forEach(el => {
+  document.querySelectorAll(`[${AG_COLOR_ATTR}]`).forEach(el => {
     COLOR_PROPS.forEach(prop => el.style.removeProperty(prop));
-    el.removeAttribute(AG_ATTR);
+    el.removeAttribute(AG_COLOR_ATTR);
   });
 }
 
-function processElement(el, validSwaps) {
+function processColorElement(el, validSwaps) {
   if (!el || el.nodeType !== 1 || el.id === STYLE_ID) return;
   const computed = window.getComputedStyle(el);
   let hit = false;
@@ -72,7 +92,7 @@ function processElement(el, validSwaps) {
       }
     }
   }
-  if (hit) el.setAttribute(AG_ATTR, '1');
+  if (hit) el.setAttribute(AG_COLOR_ATTR, '1');
 }
 
 function applyColorSwaps(swaps) {
@@ -86,44 +106,50 @@ function applyColorSwaps(swaps) {
 
   if (!validSwaps.length) return;
 
-  // Scan every rendered element
-  document.querySelectorAll('*').forEach(el => processElement(el, validSwaps));
+  document.querySelectorAll('*').forEach(el => processColorElement(el, validSwaps));
 
-  // Catch dynamically added elements
   colorObserver = new MutationObserver(mutations => {
     for (const m of mutations) {
       if (m.type !== 'childList') continue;
       m.addedNodes.forEach(node => {
         if (node.nodeType !== 1) return;
-        processElement(node, validSwaps);
-        node.querySelectorAll('*').forEach(el => processElement(el, validSwaps));
+        processColorElement(node, validSwaps);
+        node.querySelectorAll('*').forEach(el => processColorElement(el, validSwaps));
       });
     }
   });
   colorObserver.observe(document.documentElement, { childList: true, subtree: true });
 }
 
-function applyStyles(settings) {
-  let el = document.getElementById(STYLE_ID);
+// ── Entry point ──────────────────────────────────────────────────────────────
 
+function ensureManropeImport() {
+  if (document.getElementById(STYLE_ID)) return;
+  const el = document.createElement('style');
+  el.id = STYLE_ID;
+  el.textContent = `@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');`;
+  (document.head || document.documentElement).appendChild(el);
+}
+
+function applyStyles(settings) {
   if (!settings.enabled) {
-    if (el) el.remove();
+    clearFontOverrides();
     clearColorOverrides();
     return;
   }
 
-  if (!el) {
-    el = document.createElement('style');
-    el.id = STYLE_ID;
-    (document.head || document.documentElement).appendChild(el);
-  }
-  el.textContent = settings.fontEnabled ? buildFontCSS() : '';
+  ensureManropeImport();
 
-  // Wait for DOM to be painted before scanning computed styles
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => applyColorSwaps(settings.colorSwaps), { once: true });
-  } else {
+  const run = () => {
+    if (settings.fontEnabled) applyFontSwap();
+    else clearFontOverrides();
     applyColorSwaps(settings.colorSwaps);
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run, { once: true });
+  } else {
+    run();
   }
 }
 
