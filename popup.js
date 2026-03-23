@@ -30,6 +30,10 @@ function renderUI() {
   renderColorList();
 }
 
+function stripHash(val) {
+  return (val || '').trim().replace(/^#/, '');
+}
+
 function renderColorList() {
   colorList.innerHTML = '';
   const swaps = settings.colorSwaps || [];
@@ -38,9 +42,11 @@ function renderColorList() {
     const row = document.createElement('div');
     row.className = 'color-row';
     row.innerHTML = `
-      <input type="text" class="from-input" placeholder="#old hex" value="${escHtml(swap.from || '')}" data-index="${i}" />
+      <span class="hash">#</span>
+      <input type="text" class="from-input" placeholder="e.g. 0073e6" value="${escHtml(stripHash(swap.from))}" data-index="${i}" maxlength="6" />
       <span class="arrow">→</span>
-      <input type="text" class="to-input" placeholder="#new hex" value="${escHtml(swap.to || '')}" data-index="${i}" />
+      <span class="hash">#</span>
+      <input type="text" class="to-input" placeholder="e.g. ff4500" value="${escHtml(stripHash(swap.to))}" data-index="${i}" maxlength="6" />
       <button class="btn-remove" data-index="${i}" title="Remove">×</button>
     `;
     colorList.appendChild(row);
@@ -48,12 +54,12 @@ function renderColorList() {
 
   colorList.querySelectorAll('.from-input').forEach(el => {
     el.addEventListener('input', e => {
-      settings.colorSwaps[+e.target.dataset.index].from = e.target.value;
+      settings.colorSwaps[+e.target.dataset.index].from = stripHash(e.target.value);
     });
   });
   colorList.querySelectorAll('.to-input').forEach(el => {
     el.addEventListener('input', e => {
-      settings.colorSwaps[+e.target.dataset.index].to = e.target.value;
+      settings.colorSwaps[+e.target.dataset.index].to = stripHash(e.target.value);
     });
   });
   colorList.querySelectorAll('.btn-remove').forEach(el => {

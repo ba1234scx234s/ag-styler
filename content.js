@@ -1,33 +1,73 @@
 const STYLE_ID = 'ag-styler-overrides';
 
-function buildCSS(settings) {
-  if (!settings.enabled) return '';
+function normalizeHex(hex) {
+  return hex.trim().replace(/^#/, '').toLowerCase();
+}
 
-  const rules = [];
-
-  // Font swap: replace Open Sans with Manrope
-  if (settings.fontEnabled) {
-    rules.push(`
+function buildFontCSS() {
+  return `
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
 
-* {
+*:not([class*="material-symbols"]):not([class*="material-icons"]):not([class*="font-awesome"]):not([class*="fa "]):not([class*="fa-"]) {
   font-family: Manrope, sans-serif !important;
 }
 [style*="Open Sans"], [class*="open-sans"], [class*="opensans"] {
   font-family: Manrope, sans-serif !important;
 }
-`);
+/* Explicitly restore icon fonts so the :not() rule above can't bleed in */
+[class*="material-symbols"],
+[class*="material-icons"] {
+  font-family: 'Material Symbols Rounded', 'Material Symbols Outlined',
+               'Material Icons', 'Material Icons Round', 'Material Icons Outlined' !important;
+}
+`;
+}
+
+let colorObserver = null;
+
+function applyColorSwaps(swaps) {
+  if (colorObserver) { colorObserver.disconnect(); colorObserver = null; }
+  if (!swaps || swaps.length === 0) return;
+
+  const validSwaps = swaps
+    .filter(s => s.from && s.to)
+    .map(s => ({
+      pattern: new RegExp('#' + normalizeHex(s.from), 'gi'),
+      to: '#' + normalizeHex(s.to)
+    }));
+
+  if (validSwaps.length === 0) return;
+
+  function processElement(el) {
+    const style = el.getAttribute('style');
+    if (!style) return;
+    let next = style;
+    for (const swap of validSwaps) next = next.replace(swap.pattern, swap.to);
+    if (next !== style) el.setAttribute('style', next);
   }
 
-  // Colour swaps — target inline styles
-  if (settings.colorSwaps && settings.colorSwaps.length > 0) {
-    for (const swap of settings.colorSwaps) {
-      if (!swap.from || !swap.to) continue;
-      rules.push(`[style*="${swap.from}"] { color: ${swap.to} !important; background-color: ${swap.to} !important; }`);
+  document.querySelectorAll('[style]').forEach(processElement);
+
+  colorObserver = new MutationObserver(mutations => {
+    for (const m of mutations) {
+      if (m.type === 'childList') {
+        m.addedNodes.forEach(node => {
+          if (node.nodeType !== 1) return;
+          if (node.hasAttribute('style')) processElement(node);
+          node.querySelectorAll('[style]').forEach(processElement);
+        });
+      } else if (m.type === 'attributes') {
+        processElement(m.target);
+      }
     }
-  }
+  });
 
-  return rules.join('\n');
+  colorObserver.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['style']
+  });
 }
 
 function applyStyles(settings) {
@@ -35,28 +75,25 @@ function applyStyles(settings) {
 
   if (!settings.enabled) {
     if (el) el.remove();
+    if (colorObserver) { colorObserver.disconnect(); colorObserver = null; }
     return;
   }
-
-  const css = buildCSS(settings);
 
   if (!el) {
     el = document.createElement('style');
     el.id = STYLE_ID;
     (document.head || document.documentElement).appendChild(el);
   }
-  el.textContent = css;
+  el.textContent = settings.fontEnabled ? buildFontCSS() : '';
+
+  applyColorSwaps(settings.colorSwaps);
 }
 
-// Load settings from storage and apply
 chrome.storage.sync.get(['agStylerSettings'], (result) => {
   const settings = result.agStylerSettings || { enabled: true, fontEnabled: true, colorSwaps: [] };
   applyStyles(settings);
 });
 
-// Listen for live updates from popup
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === 'AG_STYLER_UPDATE') {
-    applyStyles(msg.settings);
-  }
+  if (msg.type === 'AG_STYLER_UPDATE') applyStyles(msg.settings);
 });
