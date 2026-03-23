@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "AG Styler",
+  "version": "1.0.0",
+  "description": "Swap fonts (Open Sans → Manrope) and customise colours on any page.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["*://*.autogate.co/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "AG Styler"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.autogate.co/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
