@@ -50,6 +50,7 @@ const FONTS = [
   { value: 'open-sans', label: 'Open Sans (default)' },
   { value: 'manrope',   label: 'Manrope' },
   { value: 'atkinson',  label: 'Atkinson Hyperlegible' },
+  { value: 'inter',     label: 'Inter' },
 ];
 
 const DEFAULT_SETTINGS = {
