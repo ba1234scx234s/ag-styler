@@ -2,7 +2,7 @@
 
 A Chrome extension for [autogate.co](https://autogate.co) that lets you swap fonts and colours across the entire app.
 
-- **Font swap** — replaces Open Sans with Manrope site-wide
+- **Font swap** — replaces Open Sans with Manrope, Inter, Atkinson site-wide
 - **Colour swap** — replace any hex colour with another (supports multiple swaps)
 - **Radius swap** — replace the button radii
 
