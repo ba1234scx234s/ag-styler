@@ -1,12 +1,14 @@
 # AG Styler
 
-A Chrome extension for [autogate.co](https://autogate.co) that lets you swap fonts and colours across the entire app.
+A Chrome extension that lets you swap fonts and colours across the entire AG app.
 
 - **Font swap** — replaces Open Sans with Manrope, Inter, Atkinson site-wide
 - **Colour swap** — replace any hex colour with another (supports multiple swaps)
 - **Radius swap** — replace the button radii
 - **Logo** — removes the logo
 - **Header colours** - swaps header background and link colours
+
+<img width="323" height="539" alt="agstyler" src="https://github.com/user-attachments/assets/e991f423-0d6e-4250-870c-a2525019cbd9" />
 
 ---
 
