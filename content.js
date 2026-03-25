@@ -148,7 +148,13 @@ function applyButtonRadius(px) {
 function applyHeaderStyles(header) {
   let el = document.getElementById(HEADER_STYLE_ID);
   if (!header || (!header.bgColor && !header.linkColor)) {
-    if (el) el.remove();
+    // Still inject the border-right reset even with no colour overrides
+    if (!el) {
+      el = document.createElement('style');
+      el.id = HEADER_STYLE_ID;
+      (document.head || document.documentElement).appendChild(el);
+    }
+    el.textContent = `.header { border-right: 0 !important; }`;
     return;
   }
   if (!el) {
@@ -158,7 +164,9 @@ function applyHeaderStyles(header) {
   }
   const rules = [];
   if (header.bgColor) {
-    rules.push(`.header { background-color: #${normalizeHex(header.bgColor)} !important; }`);
+    rules.push(`.header { background-color: #${normalizeHex(header.bgColor)} !important; border-right: 0 !important; }`);
+  } else {
+    rules.push(`.header { border-right: 0 !important; }`);
   }
   if (header.linkColor) {
     const lc = '#' + normalizeHex(header.linkColor);
