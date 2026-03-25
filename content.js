@@ -1,6 +1,7 @@
 const STYLE_ID = 'ag-styler-import';  // just holds the @import for Manrope
 const RADIUS_STYLE_ID = 'ag-styler-radius';
 const HEADER_STYLE_ID = 'ag-styler-header';
+const PAGE_BG_STYLE_ID = 'ag-styler-pagebg';
 const AG_FONT_ATTR = 'data-ag-font';
 const AG_COLOR_ATTR = 'data-ag-cs';
 
@@ -168,6 +169,22 @@ function applyHeaderStyles(header) {
   el.textContent = rules.join('\n');
 }
 
+// ── Page background ───────────────────────────────────────────────────────────
+
+function applyPageBg(hex) {
+  let el = document.getElementById(PAGE_BG_STYLE_ID);
+  if (!hex) {
+    if (el) el.remove();
+    return;
+  }
+  if (!el) {
+    el = document.createElement('style');
+    el.id = PAGE_BG_STYLE_ID;
+    (document.head || document.documentElement).appendChild(el);
+  }
+  el.textContent = `:root { --bs-body-bg: #${normalizeHex(hex)} !important; } body { background-color: #${normalizeHex(hex)} !important; }`;
+}
+
 // ── Entry point ──────────────────────────────────────────────────────────────
 
 const FONT_CONFIG = {
@@ -202,6 +219,7 @@ function applyStyles(settings) {
     clearFontOverrides();
     clearColorOverrides();
     applyButtonRadius(null);
+    applyPageBg(null);
     const hdrEl = document.getElementById(HEADER_STYLE_ID);
     if (hdrEl) hdrEl.remove();
     return;
@@ -214,6 +232,7 @@ function applyStyles(settings) {
     else clearFontOverrides();
     applyColorSwaps(settings.colorSwaps);
     applyButtonRadius(settings.buttonRadius);
+    applyPageBg(settings.pageBgColor || '');
     applyHeaderStyles(settings.header || {});
   };
 
