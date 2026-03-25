@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "AG Styler",
   "version": "1.2.1",
-  "description": "Swap fonts and customise colours on autogate.co.",
+  "description": "Swap fonts and customise colours on AG.",
   "permissions": ["activeTab", "scripting", "storage", "sidePanel"],
   "host_permissions": ["*://*.autogate.co/*"],
   "action": {
