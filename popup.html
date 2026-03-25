@@ -246,10 +246,7 @@
     .radius-input-wrap input[type="number"]:focus { outline: none; border-color: #1d6ef5; }
     .unit { font-size: 12px; color: #555; }
 
-    /* Header section color pickers */
-    #headerBgWrap, #headerLinkWrap { width: 180px; flex-shrink: 0; }
-
-    /* Logo upload */
+/* Logo upload */
     .btn-upload {
       background: #1a1a1a;
       border: 1px solid #2d2d2d;
@@ -393,11 +390,11 @@
     <div class="section-label">Header</div>
     <div class="row">
       <label>Background</label>
-      <div id="headerBgWrap"></div>
+      <div class="hex-input-wrap"><span class="hash">#</span><input type="text" id="inputHeaderBg" placeholder="ffffff" maxlength="6" spellcheck="false" /></div>
     </div>
     <div class="row">
       <label>Link &amp; interactive</label>
-      <div id="headerLinkWrap"></div>
+      <div class="hex-input-wrap"><span class="hash">#</span><input type="text" id="inputHeaderLink" placeholder="027CC2" maxlength="6" spellcheck="false" /></div>
     </div>
     <div class="row">
       <label>Logo</label>

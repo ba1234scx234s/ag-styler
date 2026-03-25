@@ -87,8 +87,8 @@ const inputNavSidebarBg = document.getElementById('inputNavSidebarBg');
 const inputNavLinkColor = document.getElementById('inputNavLinkColor');
 const inputNavActiveBg  = document.getElementById('inputNavActiveBg');
 const inputNavHoverBg   = document.getElementById('inputNavHoverBg');
-const headerBgWrap   = document.getElementById('headerBgWrap');
-const headerLinkWrap = document.getElementById('headerLinkWrap');
+const inputHeaderBg   = document.getElementById('inputHeaderBg');
+const inputHeaderLink = document.getElementById('inputHeaderLink');
 const inputLogoSize  = document.getElementById('inputLogoSize');
 const inputLogo      = document.getElementById('inputLogo');
 const btnUploadLogo  = document.getElementById('btnUploadLogo');
@@ -203,6 +203,16 @@ inputLogo.addEventListener('change', () => {
   inputLogo.value = '';
 });
 
+inputHeaderBg.addEventListener('input', () => {
+  if (!settings.header) settings.header = {};
+  settings.header.bgColor = inputHeaderBg.value.trim().replace(/^#/, '');
+});
+
+inputHeaderLink.addEventListener('input', () => {
+  if (!settings.header) settings.header = {};
+  settings.header.linkColor = inputHeaderLink.value.trim().replace(/^#/, '');
+});
+
 inputLogoSize.addEventListener('input', () => {
   if (!settings.header) settings.header = {};
   settings.header.logoSize = parseInt(inputLogoSize.value, 10) || 100;
@@ -229,6 +239,8 @@ chrome.storage.sync.get(['agStylerSettings'], (result) => {
     manualSwaps: saved.manualSwaps || []
   };
   inputLogoSize.value      = settings.header.logoSize ?? 100;
+  inputHeaderBg.value      = settings.header.bgColor   || '';
+  inputHeaderLink.value    = settings.header.linkColor  || '';
   inputNavSidebarBg.value  = settings.nav.sidebarBg  || '';
   inputNavLinkColor.value  = settings.nav.linkColor  || '';
   inputNavActiveBg.value   = settings.nav.activeBg   || '';
@@ -243,26 +255,10 @@ function renderUI() {
   inputRadius.value     = settings.buttonRadius || '';
   statusBadge.textContent  = settings.enabled ? 'ON' : 'OFF';
   statusBadge.style.background = settings.enabled ? '#1d6ef5' : '#444';
-  renderHeaderSection();
   renderColorList();
   renderManualList();
 }
 
-function renderHeaderSection() {
-  if (!settings.header) settings.header = { bgColor: '', linkColor: '' };
-
-  headerBgWrap.innerHTML = '';
-  headerBgWrap.appendChild(makeSelectBtn(settings.header.bgColor, (hex) => {
-    settings.header.bgColor = hex;
-    renderHeaderSection();
-  }));
-
-  headerLinkWrap.innerHTML = '';
-  headerLinkWrap.appendChild(makeSelectBtn(settings.header.linkColor, (hex) => {
-    settings.header.linkColor = hex;
-    renderHeaderSection();
-  }));
-}
 
 function makeSelectBtn(hex, onSelect) {
   const wrap = document.createElement('div');
