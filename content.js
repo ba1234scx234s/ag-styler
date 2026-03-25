@@ -146,7 +146,7 @@ function applyButtonRadius(px) {
 
 // ── Header styles ─────────────────────────────────────────────────────────────
 
-function applyHeaderStyles(header) {
+function applyHeaderStyles(header, logo) {
   let el = document.getElementById(HEADER_STYLE_ID);
   if (!el) {
     el = document.createElement('style');
@@ -156,15 +156,21 @@ function applyHeaderStyles(header) {
   const h = header || {};
   const rules = [
     `.header, .header__brand { border-right-width: 0 !important; }`,
-    `.header__brand { background-image: none !important; }`
+    `.header.navbar-fixed-top { border-bottom-width: 0 !important; }`,
+    logo
+      ? `.header__brand { background-image: url("${logo}") !important; background-size: ${h.logoSize || 100}% !important; background-repeat: no-repeat !important; background-position: center !important; }`
+      : `.header__brand { background-image: none !important; }`,
+    `.discover-listings-header .header { border-right-width: revert !important; }`
   ];
   if (h.bgColor) {
     rules.push(`.header { background-color: #${normalizeHex(h.bgColor)} !important; }`);
+    rules.push(`.discover-listings-header .header { background-color: revert !important; }`);
   }
   if (h.linkColor) {
     const lc = '#' + normalizeHex(h.linkColor);
     rules.push(`.header a, .header button, .header [role="button"] { color: ${lc} !important; }`);
     rules.push(`.header a *, .header button *, .header [role="button"] * { color: inherit !important; }`);
+    rules.push(`.discover-listings-header .header a, .discover-listings-header .header button, .discover-listings-header .header [role="button"] { color: revert !important; }`);
   }
   el.textContent = rules.join('\n');
 }
@@ -199,6 +205,10 @@ const FONT_CONFIG = {
   'inter': {
     import: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');`,
     family: 'Inter, sans-serif'
+  },
+  'comic-sans': {
+    import: '',
+    family: '"Comic Sans MS", "Comic Sans", cursive'
   }
 };
 
@@ -214,7 +224,7 @@ function ensureFontImport(selectedFont) {
   el.textContent = config.import;
 }
 
-function applyStyles(settings) {
+function applyStyles(settings, logo) {
   if (!settings.enabled) {
     clearFontOverrides();
     clearColorOverrides();
@@ -233,7 +243,7 @@ function applyStyles(settings) {
     applyColorSwaps(settings.colorSwaps);
     applyButtonRadius(settings.buttonRadius);
     applyPageBg(settings.pageBgColor || '');
-    applyHeaderStyles(settings.header || {});
+    applyHeaderStyles(settings.header || {}, logo || '');
   };
 
   if (document.readyState === 'loading') {
@@ -249,9 +259,11 @@ chrome.storage.sync.get(['agStylerSettings'], (result) => {
     saved.selectedFont = saved.fontEnabled === false ? 'open-sans' : 'manrope';
   }
   const settings = { enabled: true, selectedFont: 'open-sans', colorSwaps: [], ...saved };
-  applyStyles(settings);
+  chrome.storage.local.get(['agStylerLogo'], (local) => {
+    applyStyles(settings, local.agStylerLogo || '');
+  });
 });
 
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === 'AG_STYLER_UPDATE') applyStyles(msg.settings);
+  if (msg.type === 'AG_STYLER_UPDATE') applyStyles(msg.settings, msg.logo || '');
 });

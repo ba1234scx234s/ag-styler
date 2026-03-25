@@ -51,6 +51,7 @@ const FONTS = [
   { value: 'manrope',   label: 'Manrope' },
   { value: 'atkinson',  label: 'Atkinson Hyperlegible' },
   { value: 'inter',     label: 'Inter' },
+  { value: 'comic-sans', label: 'Comic Sans' },
 ];
 
 const DEFAULT_SETTINGS = {
@@ -60,7 +61,7 @@ const DEFAULT_SETTINGS = {
   manualSwaps: [],
   buttonRadius: '',
   pageBgColor: '',
-  header: { bgColor: '', linkColor: '' }
+  header: { bgColor: '', linkColor: '', logoSize: 100 }
 };
 
 let settings = { ...DEFAULT_SETTINGS };
@@ -81,6 +82,14 @@ const statusBadge    = document.getElementById('statusBadge');
 const dropdown       = document.getElementById('colorDropdown');
 const headerBgWrap   = document.getElementById('headerBgWrap');
 const headerLinkWrap = document.getElementById('headerLinkWrap');
+const inputLogoSize  = document.getElementById('inputLogoSize');
+const inputLogo      = document.getElementById('inputLogo');
+const btnUploadLogo  = document.getElementById('btnUploadLogo');
+const btnClearLogo   = document.getElementById('btnClearLogo');
+const logoPreview    = document.getElementById('logoPreview');
+const logoPreviewRow = document.getElementById('logoPreviewRow');
+
+let currentLogo = '';
 
 // ── Floating dropdown ─────────────────────────────────────────────────────────
 let ddTarget = null; // { btn }
@@ -154,6 +163,52 @@ FONTS.forEach(f => {
   selectFont.appendChild(opt);
 });
 
+// ── Logo upload ───────────────────────────────────────────────────────────────
+
+function renderLogoUI() {
+  if (currentLogo) {
+    logoPreview.src = currentLogo;
+    logoPreviewRow.style.display = 'block';
+    btnClearLogo.style.display = 'inline-block';
+  } else {
+    logoPreviewRow.style.display = 'none';
+    btnClearLogo.style.display = 'none';
+  }
+}
+
+chrome.storage.local.get(['agStylerLogo'], (r) => {
+  currentLogo = r.agStylerLogo || '';
+  renderLogoUI();
+});
+
+btnUploadLogo.addEventListener('click', () => inputLogo.click());
+
+inputLogo.addEventListener('change', () => {
+  const file = inputLogo.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    currentLogo = e.target.result;
+    chrome.storage.local.set({ agStylerLogo: currentLogo });
+    renderLogoUI();
+  };
+  reader.readAsDataURL(file);
+  inputLogo.value = '';
+});
+
+inputLogoSize.addEventListener('input', () => {
+  if (!settings.header) settings.header = {};
+  settings.header.logoSize = parseInt(inputLogoSize.value, 10) || 100;
+});
+
+btnClearLogo.addEventListener('click', () => {
+  currentLogo = '';
+  chrome.storage.local.remove('agStylerLogo');
+  renderLogoUI();
+});
+
+// ── Load settings ─────────────────────────────────────────────────────────────
+
 chrome.storage.sync.get(['agStylerSettings'], (result) => {
   const saved = result.agStylerSettings || {};
   if (!saved.selectedFont) {
@@ -165,6 +220,7 @@ chrome.storage.sync.get(['agStylerSettings'], (result) => {
     header: { ...DEFAULT_SETTINGS.header, ...(saved.header || {}) },
     manualSwaps: saved.manualSwaps || []
   };
+  inputLogoSize.value = settings.header.logoSize ?? 100;
   renderUI();
 });
 
@@ -334,7 +390,7 @@ btnSave.addEventListener('click', () => {
   };
   chrome.storage.sync.set({ agStylerSettings: settings }, () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { type: 'AG_STYLER_UPDATE', settings: merged });
+      if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { type: 'AG_STYLER_UPDATE', settings: merged, logo: currentLogo });
     });
     flash('Applied!');
   });

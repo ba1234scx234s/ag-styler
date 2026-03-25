@@ -6,7 +6,17 @@
   "permissions": ["activeTab", "scripting", "storage", "sidePanel"],
   "host_permissions": ["*://*.autogate.co/*"],
   "action": {
-    "default_title": "AG Styler"
+    "default_title": "AG Styler",
+    "default_icon": {
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
   },
   "side_panel": {
     "default_path": "popup.html"

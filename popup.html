@@ -249,6 +249,33 @@
     /* Header section color pickers */
     #headerBgWrap, #headerLinkWrap { width: 180px; flex-shrink: 0; }
 
+    /* Logo upload */
+    .btn-upload {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      color: #ccc;
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .btn-upload:hover { border-color: #1d6ef5; color: #1d6ef5; }
+    #logoPreviewRow {
+      display: none;
+      margin-top: 8px;
+      padding: 6px;
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      border-radius: 5px;
+      text-align: center;
+    }
+    #logoPreview {
+      max-width: 100%;
+      max-height: 48px;
+      object-fit: contain;
+    }
+
     .btn-remove {
       background: none;
       border: none;
@@ -371,6 +398,24 @@
     <div class="row">
       <label>Link &amp; interactive</label>
       <div id="headerLinkWrap"></div>
+    </div>
+    <div class="row">
+      <label>Logo</label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="file" id="inputLogo" accept="image/*" style="display:none" />
+        <button type="button" class="btn-upload" id="btnUploadLogo">Upload image</button>
+        <button type="button" class="btn-remove" id="btnClearLogo" style="display:none" title="Remove logo">×</button>
+      </div>
+    </div>
+    <div id="logoPreviewRow">
+      <img id="logoPreview" />
+      <div class="row" style="margin-top:8px;margin-bottom:0">
+        <label for="inputLogoSize">Size</label>
+        <div class="radius-input-wrap">
+          <input type="number" id="inputLogoSize" min="1" max="200" placeholder="100" />
+          <span class="unit">%</span>
+        </div>
+      </div>
     </div>
   </div>
 
