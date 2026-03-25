@@ -5,6 +5,8 @@ A Chrome extension for [autogate.co](https://autogate.co) that lets you swap fon
 - **Font swap** — replaces Open Sans with Manrope, Inter, Atkinson site-wide
 - **Colour swap** — replace any hex colour with another (supports multiple swaps)
 - **Radius swap** — replace the button radii
+- **Logo** — removes the logo
+- **Header colours** - swaps header background and link colours
 
 ---
 
