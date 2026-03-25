@@ -155,16 +155,19 @@ function applyHeaderStyles(header) {
   }
   const h = header || {};
   const rules = [
-    `.header:not(.discover-listings-header), .header__brand { border-right-width: 0 !important; }`,
-    `.header__brand { background-image: none !important; }`
+    `.header, .header__brand { border-right-width: 0 !important; }`,
+    `.header__brand { background-image: none !important; }`,
+    `.discover-listings-header .header { border-right-width: revert !important; }`
   ];
   if (h.bgColor) {
-    rules.push(`.header:not(.discover-listings-header) { background-color: #${normalizeHex(h.bgColor)} !important; }`);
+    rules.push(`.header { background-color: #${normalizeHex(h.bgColor)} !important; }`);
+    rules.push(`.discover-listings-header .header { background-color: revert !important; }`);
   }
   if (h.linkColor) {
     const lc = '#' + normalizeHex(h.linkColor);
-    rules.push(`.header:not(.discover-listings-header) a, .header:not(.discover-listings-header) button, .header:not(.discover-listings-header) [role="button"] { color: ${lc} !important; }`);
-    rules.push(`.header:not(.discover-listings-header) a *, .header:not(.discover-listings-header) button *, .header:not(.discover-listings-header) [role="button"] * { color: inherit !important; }`);
+    rules.push(`.header a, .header button, .header [role="button"] { color: ${lc} !important; }`);
+    rules.push(`.header a *, .header button *, .header [role="button"] * { color: inherit !important; }`);
+    rules.push(`.discover-listings-header .header a, .discover-listings-header .header button, .discover-listings-header .header [role="button"] { color: revert !important; }`);
   }
   el.textContent = rules.join('\n');
 }
