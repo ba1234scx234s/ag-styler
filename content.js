@@ -153,7 +153,10 @@ function applyHeaderStyles(header) {
     (document.head || document.documentElement).appendChild(el);
   }
   const h = header || {};
-  const rules = [`.header, .header__brand { border-right-width: 0 !important; }`];
+  const rules = [
+    `.header, .header__brand { border-right-width: 0 !important; }`,
+    `.header__brand { background-image: none !important; }`
+  ];
   if (h.bgColor) {
     rules.push(`.header { background-color: #${normalizeHex(h.bgColor)} !important; }`);
   }
