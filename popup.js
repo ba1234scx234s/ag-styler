@@ -79,6 +79,7 @@ const btnAddManual   = document.getElementById('btnAddManual');
 const btnSave        = document.getElementById('btnSave');
 const btnReset       = document.getElementById('btnReset');
 const statusMsg      = document.getElementById('statusMsg');
+document.getElementById('versionLabel').textContent = 'v' + chrome.runtime.getManifest().version;
 const statusBadge    = document.getElementById('statusBadge');
 const dropdown       = document.getElementById('colorDropdown');
 const headerBgWrap   = document.getElementById('headerBgWrap');
