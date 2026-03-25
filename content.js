@@ -147,28 +147,32 @@ function applyButtonRadius(px) {
 
 function applyHeaderStyles(header) {
   let el = document.getElementById(HEADER_STYLE_ID);
+  if (!header || (!header.bgColor && !header.linkColor)) {
+    // Still inject the border-right reset even with no colour overrides
+    if (!el) {
+      el = document.createElement('style');
+      el.id = HEADER_STYLE_ID;
+      (document.head || document.documentElement).appendChild(el);
+    }
+    el.textContent = `.header { border-right: 0 !important; }`;
+    return;
+  }
   if (!el) {
     el = document.createElement('style');
     el.id = HEADER_STYLE_ID;
     (document.head || document.documentElement).appendChild(el);
   }
-
-  const h = header || {};
-  const sel = `.header, [class*="header"]`;
   const rules = [];
-
-  // Always remove the right border
-  rules.push(`${sel} { border-right: none !important; border-right-width: 0 !important; }`);
-
-  if (h.bgColor) {
-    rules.push(`${sel} { background-color: #${normalizeHex(h.bgColor)} !important; }`);
+  if (header.bgColor) {
+    rules.push(`.header { background-color: #${normalizeHex(header.bgColor)} !important; border-right: 0 !important; }`);
+  } else {
+    rules.push(`.header { border-right: 0 !important; }`);
   }
-  if (h.linkColor) {
-    const lc = '#' + normalizeHex(h.linkColor);
-    rules.push(`${sel} a, ${sel} button, ${sel} [role="button"] { color: ${lc} !important; }`);
-    rules.push(`${sel} a *, ${sel} button *, ${sel} [role="button"] * { color: inherit !important; }`);
+  if (header.linkColor) {
+    const lc = '#' + normalizeHex(header.linkColor);
+    rules.push(`.header a, .header button, .header [role="button"] { color: ${lc} !important; }`);
+    rules.push(`.header a *, .header button *, .header [role="button"] * { color: inherit !important; }`);
   }
-
   el.textContent = rules.join('\n');
 }
 
@@ -206,8 +210,7 @@ function applyStyles(settings) {
     clearFontOverrides();
     clearColorOverrides();
     applyButtonRadius(null);
-    const headerEl = document.getElementById(HEADER_STYLE_ID);
-    if (headerEl) headerEl.remove();
+    applyHeaderStyles(null);
     return;
   }
 
