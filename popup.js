@@ -58,6 +58,7 @@ const DEFAULT_SETTINGS = {
   selectedFont: 'open-sans',
   colorSwaps: [],
   buttonRadius: '',
+  pageBgColor: '',
   header: { bgColor: '', linkColor: '' }
 };
 
@@ -66,6 +67,7 @@ let settings = { ...DEFAULT_SETTINGS };
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const toggleEnabled  = document.getElementById('toggleEnabled');
 const selectFont     = document.getElementById('selectFont');
+const inputPageBg    = document.getElementById('inputPageBg');
 const inputRadius    = document.getElementById('inputRadius');
 const colorList      = document.getElementById('colorList');
 const btnAddColor    = document.getElementById('btnAddColor');
@@ -165,6 +167,7 @@ chrome.storage.sync.get(['agStylerSettings'], (result) => {
 function renderUI() {
   toggleEnabled.checked = settings.enabled;
   selectFont.value      = settings.selectedFont || 'open-sans';
+  inputPageBg.value     = settings.pageBgColor || '';
   inputRadius.value     = settings.buttonRadius || '';
   statusBadge.textContent  = settings.enabled ? 'ON' : 'OFF';
   statusBadge.style.background = settings.enabled ? '#1d6ef5' : '#444';
@@ -261,6 +264,10 @@ toggleEnabled.addEventListener('change', () => {
 
 selectFont.addEventListener('change', () => {
   settings.selectedFont = selectFont.value;
+});
+
+inputPageBg.addEventListener('input', () => {
+  settings.pageBgColor = inputPageBg.value.trim().replace(/^#/, '');
 });
 
 inputRadius.addEventListener('input', () => {

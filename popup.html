@@ -192,6 +192,25 @@
     #colorDropdown .dd-item .dd-name { flex: 1; color: #ccc; }
     #colorDropdown .dd-item .dd-hex { font-family: monospace; font-size: 11px; color: #555; }
 
+    /* Plain hex input */
+    .hex-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .hash { font-size: 12px; color: #555; font-family: monospace; }
+    .hex-input-wrap input[type="text"] {
+      background: #1a1a1a;
+      border: 1px solid #2d2d2d;
+      color: #e8e8e8;
+      border-radius: 5px;
+      padding: 5px 8px;
+      font-size: 12px;
+      font-family: monospace;
+      width: 90px;
+    }
+    .hex-input-wrap input[type="text"]:focus { outline: none; border-color: #1d6ef5; }
+
     /* Radius input */
     .radius-input-wrap {
       display: flex;
@@ -314,6 +333,17 @@
       <div class="radius-input-wrap">
         <input type="number" id="inputRadius" placeholder="e.g. 8" min="0" max="999" />
         <span class="unit">px</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Page Background</div>
+    <div class="row">
+      <label for="inputPageBg">Background colour</label>
+      <div class="hex-input-wrap">
+        <span class="hash">#</span>
+        <input type="text" id="inputPageBg" placeholder="e.g. F5F5F5" maxlength="6" spellcheck="false" />
       </div>
     </div>
   </div>
