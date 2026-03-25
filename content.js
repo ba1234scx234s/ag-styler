@@ -175,6 +175,28 @@ function applyHeaderStyles(header, logo) {
   el.textContent = rules.join('\n');
 }
 
+// ── Navigation styles ─────────────────────────────────────────────────────────
+
+const NAV_STYLE_ID = 'ag-styler-nav';
+
+function applyNavStyles(nav) {
+  let el = document.getElementById(NAV_STYLE_ID);
+  const n = nav || {};
+  const rules = [];
+  if (n.sidebarBg) rules.push(`.seamless-sidebar { background-color: #${normalizeHex(n.sidebarBg)} !important; }`);
+  if (n.linkColor)  rules.push(`.seamless { color: #${normalizeHex(n.linkColor)} !important; }`);
+  if (n.activeBg)   rules.push(`.seamless.selected { background-color: #${normalizeHex(n.activeBg)} !important; }`);
+  if (n.hoverBg)    rules.push(`.seamless:not(.selected):hover, .seamless.panel-open { background-color: #${normalizeHex(n.hoverBg)} !important; }`);
+
+  if (!rules.length) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('style');
+    el.id = NAV_STYLE_ID;
+    (document.head || document.documentElement).appendChild(el);
+  }
+  el.textContent = rules.join('\n');
+}
+
 // ── Page background ───────────────────────────────────────────────────────────
 
 function applyPageBg(hex) {
@@ -232,6 +254,8 @@ function applyStyles(settings, logo) {
     applyPageBg(null);
     const hdrEl = document.getElementById(HEADER_STYLE_ID);
     if (hdrEl) hdrEl.remove();
+    const navEl = document.getElementById(NAV_STYLE_ID);
+    if (navEl) navEl.remove();
     return;
   }
 
@@ -244,6 +268,7 @@ function applyStyles(settings, logo) {
     applyButtonRadius(settings.buttonRadius);
     applyPageBg(settings.pageBgColor || '');
     applyHeaderStyles(settings.header || {}, logo || '');
+    applyNavStyles(settings.nav || {});
   };
 
   if (document.readyState === 'loading') {

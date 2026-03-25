@@ -62,7 +62,8 @@ const DEFAULT_SETTINGS = {
   manualSwaps: [],
   buttonRadius: '',
   pageBgColor: '',
-  header: { bgColor: '', linkColor: '', logoSize: 100 }
+  header: { bgColor: '', linkColor: '', logoSize: 100 },
+  nav: { sidebarBg: '', linkColor: '', activeBg: '', hoverBg: '' }
 };
 
 let settings = { ...DEFAULT_SETTINGS };
@@ -82,6 +83,10 @@ const statusMsg      = document.getElementById('statusMsg');
 document.getElementById('versionLabel').textContent = 'v' + chrome.runtime.getManifest().version;
 const statusBadge    = document.getElementById('statusBadge');
 const dropdown       = document.getElementById('colorDropdown');
+const inputNavSidebarBg = document.getElementById('inputNavSidebarBg');
+const inputNavLinkColor = document.getElementById('inputNavLinkColor');
+const inputNavActiveBg  = document.getElementById('inputNavActiveBg');
+const inputNavHoverBg   = document.getElementById('inputNavHoverBg');
 const headerBgWrap   = document.getElementById('headerBgWrap');
 const headerLinkWrap = document.getElementById('headerLinkWrap');
 const inputLogoSize  = document.getElementById('inputLogoSize');
@@ -220,9 +225,14 @@ chrome.storage.sync.get(['agStylerSettings'], (result) => {
     ...DEFAULT_SETTINGS,
     ...saved,
     header: { ...DEFAULT_SETTINGS.header, ...(saved.header || {}) },
+    nav: { ...DEFAULT_SETTINGS.nav, ...(saved.nav || {}) },
     manualSwaps: saved.manualSwaps || []
   };
-  inputLogoSize.value = settings.header.logoSize ?? 100;
+  inputLogoSize.value      = settings.header.logoSize ?? 100;
+  inputNavSidebarBg.value  = settings.nav.sidebarBg  || '';
+  inputNavLinkColor.value  = settings.nav.linkColor  || '';
+  inputNavActiveBg.value   = settings.nav.activeBg   || '';
+  inputNavHoverBg.value    = settings.nav.hoverBg    || '';
   renderUI();
 });
 
@@ -352,6 +362,18 @@ inputPageBg.addEventListener('input', () => {
 
 inputRadius.addEventListener('input', () => {
   settings.buttonRadius = inputRadius.value.trim();
+});
+
+[
+  [inputNavSidebarBg, 'sidebarBg'],
+  [inputNavLinkColor, 'linkColor'],
+  [inputNavActiveBg,  'activeBg'],
+  [inputNavHoverBg,   'hoverBg'],
+].forEach(([el, key]) => {
+  el.addEventListener('input', () => {
+    if (!settings.nav) settings.nav = {};
+    settings.nav[key] = el.value.trim().replace(/^#/, '');
+  });
 });
 
 btnAddColor.addEventListener('click', () => {
