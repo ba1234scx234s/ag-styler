@@ -6,7 +6,13 @@
   "permissions": ["activeTab", "scripting", "storage", "sidePanel"],
   "host_permissions": ["*://*.autogate.co/*"],
   "action": {
-    "default_title": "AG Styler"
+    "default_title": "AG Styler",
+    "default_icon": "ico.svg"
+  },
+  "icons": {
+    "16": "ico.svg",
+    "48": "ico.svg",
+    "128": "ico.svg"
   },
   "side_panel": {
     "default_path": "popup.html"
