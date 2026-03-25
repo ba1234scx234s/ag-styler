@@ -61,7 +61,7 @@ const DEFAULT_SETTINGS = {
   manualSwaps: [],
   buttonRadius: '',
   pageBgColor: '',
-  header: { bgColor: '', linkColor: '' }
+  header: { bgColor: '', linkColor: '', logoSize: 100 }
 };
 
 let settings = { ...DEFAULT_SETTINGS };
@@ -82,6 +82,7 @@ const statusBadge    = document.getElementById('statusBadge');
 const dropdown       = document.getElementById('colorDropdown');
 const headerBgWrap   = document.getElementById('headerBgWrap');
 const headerLinkWrap = document.getElementById('headerLinkWrap');
+const inputLogoSize  = document.getElementById('inputLogoSize');
 const inputLogo      = document.getElementById('inputLogo');
 const btnUploadLogo  = document.getElementById('btnUploadLogo');
 const btnClearLogo   = document.getElementById('btnClearLogo');
@@ -195,6 +196,11 @@ inputLogo.addEventListener('change', () => {
   inputLogo.value = '';
 });
 
+inputLogoSize.addEventListener('input', () => {
+  if (!settings.header) settings.header = {};
+  settings.header.logoSize = parseInt(inputLogoSize.value, 10) || 100;
+});
+
 btnClearLogo.addEventListener('click', () => {
   currentLogo = '';
   chrome.storage.local.remove('agStylerLogo');
@@ -214,6 +220,7 @@ chrome.storage.sync.get(['agStylerSettings'], (result) => {
     header: { ...DEFAULT_SETTINGS.header, ...(saved.header || {}) },
     manualSwaps: saved.manualSwaps || []
   };
+  inputLogoSize.value = settings.header.logoSize ?? 100;
   renderUI();
 });
 
