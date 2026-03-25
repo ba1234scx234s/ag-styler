@@ -147,29 +147,18 @@ function applyButtonRadius(px) {
 
 function applyHeaderStyles(header) {
   let el = document.getElementById(HEADER_STYLE_ID);
-  if (!header || (!header.bgColor && !header.linkColor)) {
-    // Still inject the border-right reset even with no colour overrides
-    if (!el) {
-      el = document.createElement('style');
-      el.id = HEADER_STYLE_ID;
-      (document.head || document.documentElement).appendChild(el);
-    }
-    el.textContent = `.header { border-right: 0 !important; }`;
-    return;
-  }
   if (!el) {
     el = document.createElement('style');
     el.id = HEADER_STYLE_ID;
     (document.head || document.documentElement).appendChild(el);
   }
-  const rules = [];
-  if (header.bgColor) {
-    rules.push(`.header { background-color: #${normalizeHex(header.bgColor)} !important; border-right: 0 !important; }`);
-  } else {
-    rules.push(`.header { border-right: 0 !important; }`);
+  const h = header || {};
+  const rules = [`.header { border-right-width: 0 !important; }`];
+  if (h.bgColor) {
+    rules.push(`.header { background-color: #${normalizeHex(h.bgColor)} !important; }`);
   }
-  if (header.linkColor) {
-    const lc = '#' + normalizeHex(header.linkColor);
+  if (h.linkColor) {
+    const lc = '#' + normalizeHex(h.linkColor);
     rules.push(`.header a, .header button, .header [role="button"] { color: ${lc} !important; }`);
     rules.push(`.header a *, .header button *, .header [role="button"] * { color: inherit !important; }`);
   }
@@ -210,7 +199,8 @@ function applyStyles(settings) {
     clearFontOverrides();
     clearColorOverrides();
     applyButtonRadius(null);
-    applyHeaderStyles(null);
+    const hdrEl = document.getElementById(HEADER_STYLE_ID);
+    if (hdrEl) hdrEl.remove();
     return;
   }
 
