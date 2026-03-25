@@ -199,6 +199,10 @@ const FONT_CONFIG = {
   'inter': {
     import: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');`,
     family: 'Inter, sans-serif'
+  },
+  'comic-sans': {
+    import: '',
+    family: '"Comic Sans MS", "Comic Sans", cursive'
   }
 };
 

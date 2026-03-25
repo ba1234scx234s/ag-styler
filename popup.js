@@ -51,6 +51,7 @@ const FONTS = [
   { value: 'manrope',   label: 'Manrope' },
   { value: 'atkinson',  label: 'Atkinson Hyperlegible' },
   { value: 'inter',     label: 'Inter' },
+  { value: 'comic-sans', label: 'Comic Sans' },
 ];
 
 const DEFAULT_SETTINGS = {
