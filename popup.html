@@ -199,7 +199,8 @@
       gap: 3px;
     }
     .hash { font-size: 12px; color: #555; font-family: monospace; }
-    .hex-input-wrap input[type="text"] {
+    .hex-input-wrap input[type="text"],
+    .manual-row input[type="text"] {
       background: #1a1a1a;
       border: 1px solid #2d2d2d;
       color: #e8e8e8;
@@ -209,7 +210,19 @@
       font-family: monospace;
       width: 90px;
     }
-    .hex-input-wrap input[type="text"]:focus { outline: none; border-color: #1d6ef5; }
+    .hex-input-wrap input[type="text"]:focus,
+    .manual-row input[type="text"]:focus { outline: none; border-color: #1d6ef5; }
+
+    /* Manual hex swap rows */
+    .manual-row {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto 1fr auto;
+      gap: 4px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .manual-row:last-child { margin-bottom: 0; }
+    .manual-row input[type="text"] { width: 100%; min-width: 0; }
 
     /* Radius input */
     .radius-input-wrap {
@@ -364,6 +377,12 @@
     <div class="section-label">Colour Swaps</div>
     <div id="colorList"></div>
     <button class="btn-add" id="btnAddColor">+ Add colour swap</button>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Manual Hex</div>
+    <div id="manualList"></div>
+    <button class="btn-add" id="btnAddManual">+ Add manual swap</button>
   </div>
 
   <footer>

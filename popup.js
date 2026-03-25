@@ -57,6 +57,7 @@ const DEFAULT_SETTINGS = {
   enabled: true,
   selectedFont: 'open-sans',
   colorSwaps: [],
+  manualSwaps: [],
   buttonRadius: '',
   pageBgColor: '',
   header: { bgColor: '', linkColor: '' }
@@ -71,6 +72,8 @@ const inputPageBg    = document.getElementById('inputPageBg');
 const inputRadius    = document.getElementById('inputRadius');
 const colorList      = document.getElementById('colorList');
 const btnAddColor    = document.getElementById('btnAddColor');
+const manualList     = document.getElementById('manualList');
+const btnAddManual   = document.getElementById('btnAddManual');
 const btnSave        = document.getElementById('btnSave');
 const btnReset       = document.getElementById('btnReset');
 const statusMsg      = document.getElementById('statusMsg');
@@ -159,7 +162,8 @@ chrome.storage.sync.get(['agStylerSettings'], (result) => {
   settings = {
     ...DEFAULT_SETTINGS,
     ...saved,
-    header: { ...DEFAULT_SETTINGS.header, ...(saved.header || {}) }
+    header: { ...DEFAULT_SETTINGS.header, ...(saved.header || {}) },
+    manualSwaps: saved.manualSwaps || []
   };
   renderUI();
 });
@@ -173,6 +177,7 @@ function renderUI() {
   statusBadge.style.background = settings.enabled ? '#1d6ef5' : '#444';
   renderHeaderSection();
   renderColorList();
+  renderManualList();
 }
 
 function renderHeaderSection() {
@@ -255,6 +260,23 @@ function renderColorList() {
   });
 }
 
+function renderManualList() {
+  manualList.innerHTML = '';
+  (settings.manualSwaps || []).forEach((swap, i) => {
+    const row = document.createElement('div');
+    row.className = 'manual-row';
+    row.innerHTML = `
+      <span class="hash">#</span>
+      <input type="text" maxlength="6" placeholder="000000" value="${swap.from || ''}" data-i="${i}" data-field="from" spellcheck="false" />
+      <span class="arrow">→</span>
+      <span class="hash">#</span>
+      <input type="text" maxlength="6" placeholder="000000" value="${swap.to || ''}" data-i="${i}" data-field="to" spellcheck="false" />
+      <button class="btn-remove" data-i="${i}" title="Remove">×</button>
+    `;
+    manualList.appendChild(row);
+  });
+}
+
 // ── Event listeners ───────────────────────────────────────────────────────────
 toggleEnabled.addEventListener('change', () => {
   settings.enabled = toggleEnabled.checked;
@@ -280,17 +302,46 @@ btnAddColor.addEventListener('click', () => {
   renderColorList();
 });
 
+btnAddManual.addEventListener('click', () => {
+  if (!settings.manualSwaps) settings.manualSwaps = [];
+  settings.manualSwaps.push({ from: '', to: '' });
+  renderManualList();
+});
+
+manualList.addEventListener('input', (e) => {
+  const input = e.target.closest('input[data-i]');
+  if (!input) return;
+  const i = +input.dataset.i;
+  const field = input.dataset.field;
+  if (!settings.manualSwaps[i]) return;
+  settings.manualSwaps[i][field] = input.value.trim().replace(/^#/, '').toLowerCase();
+});
+
+manualList.addEventListener('click', (e) => {
+  const btn = e.target.closest('.btn-remove[data-i]');
+  if (!btn) return;
+  settings.manualSwaps.splice(+btn.dataset.i, 1);
+  renderManualList();
+});
+
 btnSave.addEventListener('click', () => {
+  const merged = {
+    ...settings,
+    colorSwaps: [
+      ...(settings.colorSwaps || []),
+      ...(settings.manualSwaps || []).filter(s => s.from && s.to)
+    ]
+  };
   chrome.storage.sync.set({ agStylerSettings: settings }, () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { type: 'AG_STYLER_UPDATE', settings });
+      if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { type: 'AG_STYLER_UPDATE', settings: merged });
     });
     flash('Applied!');
   });
 });
 
 btnReset.addEventListener('click', () => {
-  settings = { ...DEFAULT_SETTINGS, colorSwaps: [] };
+  settings = { ...DEFAULT_SETTINGS, colorSwaps: [], manualSwaps: [] };
   chrome.storage.sync.set({ agStylerSettings: settings }, () => {
     renderUI();
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
