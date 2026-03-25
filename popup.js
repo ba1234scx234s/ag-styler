@@ -58,7 +58,7 @@ const DEFAULT_SETTINGS = {
   selectedFont: 'open-sans',
   colorSwaps: [],
   buttonRadius: '',
-  header: { bgColor: '', linkColor: '' }
+  header: { bgColor: '', linkColor: '', borderColor: '' }
 };
 
 let settings = { ...DEFAULT_SETTINGS };
@@ -74,8 +74,9 @@ const btnReset       = document.getElementById('btnReset');
 const statusMsg      = document.getElementById('statusMsg');
 const statusBadge    = document.getElementById('statusBadge');
 const dropdown       = document.getElementById('colorDropdown');
-const headerBgWrap   = document.getElementById('headerBgWrap');
-const headerLinkWrap = document.getElementById('headerLinkWrap');
+const headerBgWrap     = document.getElementById('headerBgWrap');
+const headerLinkWrap   = document.getElementById('headerLinkWrap');
+const headerBorderWrap = document.getElementById('headerBorderWrap');
 
 // ── Floating dropdown ─────────────────────────────────────────────────────────
 let ddTarget = null; // { btn }
@@ -184,6 +185,12 @@ function renderHeaderSection() {
   headerLinkWrap.innerHTML = '';
   headerLinkWrap.appendChild(makeSelectBtn(settings.header.linkColor, (hex) => {
     settings.header.linkColor = hex;
+    renderHeaderSection();
+  }));
+
+  headerBorderWrap.innerHTML = '';
+  headerBorderWrap.appendChild(makeSelectBtn(settings.header.borderColor, (hex) => {
+    settings.header.borderColor = hex;
     renderHeaderSection();
   }));
 }
