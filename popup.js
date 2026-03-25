@@ -82,6 +82,13 @@ const statusBadge    = document.getElementById('statusBadge');
 const dropdown       = document.getElementById('colorDropdown');
 const headerBgWrap   = document.getElementById('headerBgWrap');
 const headerLinkWrap = document.getElementById('headerLinkWrap');
+const inputLogo      = document.getElementById('inputLogo');
+const btnUploadLogo  = document.getElementById('btnUploadLogo');
+const btnClearLogo   = document.getElementById('btnClearLogo');
+const logoPreview    = document.getElementById('logoPreview');
+const logoPreviewRow = document.getElementById('logoPreviewRow');
+
+let currentLogo = '';
 
 // ── Floating dropdown ─────────────────────────────────────────────────────────
 let ddTarget = null; // { btn }
@@ -154,6 +161,47 @@ FONTS.forEach(f => {
   opt.textContent = f.label;
   selectFont.appendChild(opt);
 });
+
+// ── Logo upload ───────────────────────────────────────────────────────────────
+
+function renderLogoUI() {
+  if (currentLogo) {
+    logoPreview.src = currentLogo;
+    logoPreviewRow.style.display = 'block';
+    btnClearLogo.style.display = 'inline-block';
+  } else {
+    logoPreviewRow.style.display = 'none';
+    btnClearLogo.style.display = 'none';
+  }
+}
+
+chrome.storage.local.get(['agStylerLogo'], (r) => {
+  currentLogo = r.agStylerLogo || '';
+  renderLogoUI();
+});
+
+btnUploadLogo.addEventListener('click', () => inputLogo.click());
+
+inputLogo.addEventListener('change', () => {
+  const file = inputLogo.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    currentLogo = e.target.result;
+    chrome.storage.local.set({ agStylerLogo: currentLogo });
+    renderLogoUI();
+  };
+  reader.readAsDataURL(file);
+  inputLogo.value = '';
+});
+
+btnClearLogo.addEventListener('click', () => {
+  currentLogo = '';
+  chrome.storage.local.remove('agStylerLogo');
+  renderLogoUI();
+});
+
+// ── Load settings ─────────────────────────────────────────────────────────────
 
 chrome.storage.sync.get(['agStylerSettings'], (result) => {
   const saved = result.agStylerSettings || {};
@@ -335,7 +383,7 @@ btnSave.addEventListener('click', () => {
   };
   chrome.storage.sync.set({ agStylerSettings: settings }, () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { type: 'AG_STYLER_UPDATE', settings: merged });
+      if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { type: 'AG_STYLER_UPDATE', settings: merged, logo: currentLogo });
     });
     flash('Applied!');
   });
