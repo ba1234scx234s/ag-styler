@@ -213,6 +213,9 @@
     .radius-input-wrap input[type="number"]:focus { outline: none; border-color: #1d6ef5; }
     .unit { font-size: 12px; color: #555; }
 
+    /* Header section color pickers */
+    #headerBgWrap, #headerLinkWrap { width: 150px; flex-shrink: 0; }
+
     .btn-remove {
       background: none;
       border: none;
@@ -312,6 +315,18 @@
         <input type="number" id="inputRadius" placeholder="e.g. 8" min="0" max="999" />
         <span class="unit">px</span>
       </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Header</div>
+    <div class="row">
+      <label>Background</label>
+      <div id="headerBgWrap"></div>
+    </div>
+    <div class="row">
+      <label>Link &amp; interactive</label>
+      <div id="headerLinkWrap"></div>
     </div>
   </div>
 

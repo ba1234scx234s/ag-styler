@@ -57,25 +57,28 @@ const DEFAULT_SETTINGS = {
   enabled: true,
   selectedFont: 'open-sans',
   colorSwaps: [],
-  buttonRadius: ''
+  buttonRadius: '',
+  header: { bgColor: '', linkColor: '' }
 };
 
 let settings = { ...DEFAULT_SETTINGS };
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
-const toggleEnabled = document.getElementById('toggleEnabled');
-const selectFont    = document.getElementById('selectFont');
-const inputRadius   = document.getElementById('inputRadius');
-const colorList     = document.getElementById('colorList');
-const btnAddColor   = document.getElementById('btnAddColor');
-const btnSave       = document.getElementById('btnSave');
-const btnReset      = document.getElementById('btnReset');
-const statusMsg     = document.getElementById('statusMsg');
-const statusBadge   = document.getElementById('statusBadge');
-const dropdown      = document.getElementById('colorDropdown');
+const toggleEnabled  = document.getElementById('toggleEnabled');
+const selectFont     = document.getElementById('selectFont');
+const inputRadius    = document.getElementById('inputRadius');
+const colorList      = document.getElementById('colorList');
+const btnAddColor    = document.getElementById('btnAddColor');
+const btnSave        = document.getElementById('btnSave');
+const btnReset       = document.getElementById('btnReset');
+const statusMsg      = document.getElementById('statusMsg');
+const statusBadge    = document.getElementById('statusBadge');
+const dropdown       = document.getElementById('colorDropdown');
+const headerBgWrap   = document.getElementById('headerBgWrap');
+const headerLinkWrap = document.getElementById('headerLinkWrap');
 
 // ── Floating dropdown ─────────────────────────────────────────────────────────
-let ddTarget = null; // { index, field, btn }
+let ddTarget = null; // { btn }
 
 function closeDropdown() {
   dropdown.classList.remove('open');
@@ -84,12 +87,23 @@ function closeDropdown() {
 
 document.addEventListener('click', closeDropdown);
 
-function openDropdown(btn, index, field) {
-  const currentHex = (settings.colorSwaps[index][field] || '').toLowerCase();
+function openDropdown(btn, currentHex, onSelect) {
+  const normHex = (currentHex || '').toLowerCase();
 
   dropdown.innerHTML = '';
-  let lastGroup = null;
 
+  // None option
+  const noneItem = document.createElement('li');
+  noneItem.className = 'dd-item' + (!normHex ? ' selected' : '');
+  noneItem.innerHTML = `<span class="dd-name" style="font-style:italic;color:#555">— None —</span>`;
+  noneItem.addEventListener('click', e => {
+    e.stopPropagation();
+    onSelect('');
+    closeDropdown();
+  });
+  dropdown.appendChild(noneItem);
+
+  let lastGroup = null;
   for (const c of COLORS) {
     if (c.group !== lastGroup) {
       lastGroup = c.group;
@@ -99,7 +113,7 @@ function openDropdown(btn, index, field) {
       dropdown.appendChild(hdr);
     }
     const item = document.createElement('li');
-    item.className = 'dd-item' + (c.hex.toLowerCase() === currentHex ? ' selected' : '');
+    item.className = 'dd-item' + (c.hex.toLowerCase() === normHex ? ' selected' : '');
     item.innerHTML = `
       <span class="swatch" style="background:#${c.hex}"></span>
       <span class="dd-name">${c.name}</span>
@@ -107,25 +121,22 @@ function openDropdown(btn, index, field) {
     `;
     item.addEventListener('click', (e) => {
       e.stopPropagation();
-      settings.colorSwaps[index][field] = c.hex.toLowerCase();
-      renderColorList();
+      onSelect(c.hex.toLowerCase());
       closeDropdown();
     });
     dropdown.appendChild(item);
   }
 
-  // Position below the button
   const rect = btn.getBoundingClientRect();
   dropdown.style.top  = (rect.bottom + 3) + 'px';
   dropdown.style.left = '16px';
   dropdown.style.width = (document.body.offsetWidth - 32) + 'px';
   dropdown.classList.add('open');
 
-  // Scroll selected item into view
   const sel = dropdown.querySelector('.selected');
   if (sel) sel.scrollIntoView({ block: 'nearest' });
 
-  ddTarget = { index, field, btn };
+  ddTarget = { btn };
 }
 
 // ── UI rendering ──────────────────────────────────────────────────────────────
@@ -140,11 +151,14 @@ FONTS.forEach(f => {
 
 chrome.storage.sync.get(['agStylerSettings'], (result) => {
   const saved = result.agStylerSettings || {};
-  // Migrate old fontEnabled boolean → selectedFont
   if (!saved.selectedFont) {
     saved.selectedFont = saved.fontEnabled === false ? 'open-sans' : 'manrope';
   }
-  settings = { ...DEFAULT_SETTINGS, ...saved };
+  settings = {
+    ...DEFAULT_SETTINGS,
+    ...saved,
+    header: { ...DEFAULT_SETTINGS.header, ...(saved.header || {}) }
+  };
   renderUI();
 });
 
@@ -154,10 +168,27 @@ function renderUI() {
   inputRadius.value     = settings.buttonRadius || '';
   statusBadge.textContent  = settings.enabled ? 'ON' : 'OFF';
   statusBadge.style.background = settings.enabled ? '#1d6ef5' : '#444';
+  renderHeaderSection();
   renderColorList();
 }
 
-function makeSelectBtn(hex, index, field) {
+function renderHeaderSection() {
+  if (!settings.header) settings.header = { bgColor: '', linkColor: '' };
+
+  headerBgWrap.innerHTML = '';
+  headerBgWrap.appendChild(makeSelectBtn(settings.header.bgColor, (hex) => {
+    settings.header.bgColor = hex;
+    renderHeaderSection();
+  }));
+
+  headerLinkWrap.innerHTML = '';
+  headerLinkWrap.appendChild(makeSelectBtn(settings.header.linkColor, (hex) => {
+    settings.header.linkColor = hex;
+    renderHeaderSection();
+  }));
+}
+
+function makeSelectBtn(hex, onSelect) {
   const wrap = document.createElement('div');
   wrap.className = 'color-select';
 
@@ -174,10 +205,10 @@ function makeSelectBtn(hex, index, field) {
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (ddTarget && ddTarget.index === index && ddTarget.field === field) {
+    if (ddTarget && ddTarget.btn === btn) {
       closeDropdown();
     } else {
-      openDropdown(btn, index, field);
+      openDropdown(btn, hex, onSelect);
     }
   });
 
@@ -192,14 +223,20 @@ function renderColorList() {
   swaps.forEach((swap, i) => {
     const row = document.createElement('div');
     row.className = 'color-row';
-    row.appendChild(makeSelectBtn(swap.from, i, 'from'));
+    row.appendChild(makeSelectBtn(swap.from, (hex) => {
+      settings.colorSwaps[i].from = hex;
+      renderColorList();
+    }));
 
     const arrow = document.createElement('span');
     arrow.className = 'arrow';
     arrow.textContent = '→';
     row.appendChild(arrow);
 
-    row.appendChild(makeSelectBtn(swap.to, i, 'to'));
+    row.appendChild(makeSelectBtn(swap.to, (hex) => {
+      settings.colorSwaps[i].to = hex;
+      renderColorList();
+    }));
 
     const del = document.createElement('button');
     del.className = 'btn-remove';

@@ -1,5 +1,6 @@
 const STYLE_ID = 'ag-styler-import';  // just holds the @import for Manrope
 const RADIUS_STYLE_ID = 'ag-styler-radius';
+const HEADER_STYLE_ID = 'ag-styler-header';
 const AG_FONT_ATTR = 'data-ag-font';
 const AG_COLOR_ATTR = 'data-ag-cs';
 
@@ -142,6 +143,31 @@ function applyButtonRadius(px) {
   el.textContent = `button, [role="button"], a[class*="btn"], input[type="button"], input[type="submit"], input[type="reset"] { border-radius: ${val} !important; }`;
 }
 
+// ── Header styles ─────────────────────────────────────────────────────────────
+
+function applyHeaderStyles(header) {
+  let el = document.getElementById(HEADER_STYLE_ID);
+  if (!header || (!header.bgColor && !header.linkColor)) {
+    if (el) el.remove();
+    return;
+  }
+  if (!el) {
+    el = document.createElement('style');
+    el.id = HEADER_STYLE_ID;
+    (document.head || document.documentElement).appendChild(el);
+  }
+  const rules = [];
+  if (header.bgColor) {
+    rules.push(`.header { background-color: #${normalizeHex(header.bgColor)} !important; }`);
+  }
+  if (header.linkColor) {
+    const lc = '#' + normalizeHex(header.linkColor);
+    rules.push(`.header a, .header button, .header [role="button"] { color: ${lc} !important; }`);
+    rules.push(`.header a *, .header button *, .header [role="button"] * { color: inherit !important; }`);
+  }
+  el.textContent = rules.join('\n');
+}
+
 // ── Entry point ──────────────────────────────────────────────────────────────
 
 const FONT_CONFIG = {
@@ -176,6 +202,7 @@ function applyStyles(settings) {
     clearFontOverrides();
     clearColorOverrides();
     applyButtonRadius(null);
+    applyHeaderStyles(null);
     return;
   }
 
@@ -186,6 +213,7 @@ function applyStyles(settings) {
     else clearFontOverrides();
     applyColorSwaps(settings.colorSwaps);
     applyButtonRadius(settings.buttonRadius);
+    applyHeaderStyles(settings.header || {});
   };
 
   if (document.readyState === 'loading') {
