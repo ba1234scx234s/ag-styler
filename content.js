@@ -156,6 +156,7 @@ function applyHeaderStyles(header) {
   const h = header || {};
   const rules = [
     `.header, .header__brand { border-right-width: 0 !important; }`,
+    `.header.navbar-fixed-top { border-bottom-width: 0 !important; }`,
     `.header__brand { background-image: none !important; }`,
     `.discover-listings-header .header { border-right-width: revert !important; }`
   ];
