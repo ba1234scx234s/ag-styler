@@ -1,5 +1,6 @@
 // ── Colour palette ────────────────────────────────────────────────────────────
 const COLORS = [
+  { name: 'carsales-blue', hex: '0073E3', group: 'Primary' },
   { name: 'blue-50',     hex: 'F2F8FC', group: 'Primary' },
   { name: 'blue-500',    hex: '027CC2', group: 'Primary' },
   { name: 'blue-600',    hex: '0270AF', group: 'Primary' },
