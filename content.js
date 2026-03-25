@@ -155,16 +155,16 @@ function applyHeaderStyles(header) {
   }
   const h = header || {};
   const rules = [
-    `.header, .header__brand { border-right-width: 0 !important; }`,
+    `.header:not(.discover-listings-header), .header__brand { border-right-width: 0 !important; }`,
     `.header__brand { background-image: none !important; }`
   ];
   if (h.bgColor) {
-    rules.push(`.header { background-color: #${normalizeHex(h.bgColor)} !important; }`);
+    rules.push(`.header:not(.discover-listings-header) { background-color: #${normalizeHex(h.bgColor)} !important; }`);
   }
   if (h.linkColor) {
     const lc = '#' + normalizeHex(h.linkColor);
-    rules.push(`.header a, .header button, .header [role="button"] { color: ${lc} !important; }`);
-    rules.push(`.header a *, .header button *, .header [role="button"] * { color: inherit !important; }`);
+    rules.push(`.header:not(.discover-listings-header) a, .header:not(.discover-listings-header) button, .header:not(.discover-listings-header) [role="button"] { color: ${lc} !important; }`);
+    rules.push(`.header:not(.discover-listings-header) a *, .header:not(.discover-listings-header) button *, .header:not(.discover-listings-header) [role="button"] * { color: inherit !important; }`);
   }
   el.textContent = rules.join('\n');
 }
