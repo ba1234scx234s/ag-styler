@@ -158,7 +158,7 @@ function applyHeaderStyles(header, logo) {
     `.header, .header__brand { border-right-width: 0 !important; }`,
     `.header.navbar-fixed-top { border-bottom-width: 0 !important; }`,
     logo
-      ? `.header__brand { background-image: url("${logo}") !important; background-size: ${h.logoSize || 100}% !important; background-repeat: no-repeat !important; background-position: left center !important; }`
+      ? `.header__brand { background-image: url("${logo}") !important; background-size: ${h.logoSize || 100}% !important; background-repeat: no-repeat !important; background-position: center !important; }`
       : `.header__brand { background-image: none !important; }`,
     `.discover-listings-header .header { border-right-width: revert !important; }`
   ];
