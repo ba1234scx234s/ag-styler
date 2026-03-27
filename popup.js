@@ -63,7 +63,7 @@ const DEFAULT_SETTINGS = {
   buttonRadius: '',
   pageBgColor: '',
   header: { bgColor: '', linkColor: '', logoSize: 100 },
-  nav: { sidebarBg: '', linkColor: '', activeBg: '', hoverBg: '' }
+  nav: { sidebarBg: '', linkColor: '', activeBg: '', hoverBg: '', hideIcons: false }
 };
 
 let settings = { ...DEFAULT_SETTINGS };
@@ -87,6 +87,7 @@ const inputNavSidebarBg = document.getElementById('inputNavSidebarBg');
 const inputNavLinkColor = document.getElementById('inputNavLinkColor');
 const inputNavActiveBg  = document.getElementById('inputNavActiveBg');
 const inputNavHoverBg   = document.getElementById('inputNavHoverBg');
+const toggleNavIcons    = document.getElementById('toggleNavIcons');
 const inputHeaderBg   = document.getElementById('inputHeaderBg');
 const inputHeaderLink = document.getElementById('inputHeaderLink');
 const inputLogoSize  = document.getElementById('inputLogoSize');
@@ -253,6 +254,7 @@ function renderUI() {
   selectFont.value      = settings.selectedFont || 'open-sans';
   inputPageBg.value     = settings.pageBgColor || '';
   inputRadius.value     = settings.buttonRadius || '';
+  toggleNavIcons.checked = settings.nav.hideIcons || false;
   statusBadge.textContent  = settings.enabled ? 'ON' : 'OFF';
   statusBadge.style.background = settings.enabled ? '#1d6ef5' : '#444';
   renderColorList();
@@ -370,6 +372,11 @@ inputRadius.addEventListener('input', () => {
     if (!settings.nav) settings.nav = {};
     settings.nav[key] = el.value.trim().replace(/^#/, '');
   });
+});
+
+toggleNavIcons.addEventListener('change', () => {
+  if (!settings.nav) settings.nav = {};
+  settings.nav.hideIcons = toggleNavIcons.checked;
 });
 
 btnAddColor.addEventListener('click', () => {
