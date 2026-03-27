@@ -187,6 +187,7 @@ function applyNavStyles(nav) {
   if (n.linkColor)  rules.push(`.seamless { color: #${normalizeHex(n.linkColor)} !important; }`);
   if (n.activeBg)   rules.push(`.seamless.selected { background-color: #${normalizeHex(n.activeBg)} !important; }`);
   if (n.hoverBg)    rules.push(`.seamless:not(.selected):hover, .seamless.panel-open { background-color: #${normalizeHex(n.hoverBg)} !important; }`);
+  if (n.hideIcons)  rules.push(`.seamless-icon { display: none !important; }`);
 
   if (!rules.length) { if (el) el.remove(); return; }
   if (!el) {
